@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NovaSphere • Enterprise Node.js & MongoDB NoSQL Suite</title>
+  
+  <!-- Inter & JetBrains Mono Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN with darkMode: 'class' -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+        }
+      }
+    };
+
+    // Default to LIGHT mode unless user explicitly set dark
+    const savedTheme = localStorage.getItem('novasphere_theme');
+    if (savedTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  </script>
+
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen font-sans antialiased flex flex-col selection:bg-indigo-600 selection:text-white transition-colors duration-200">
+
+  <!-- TOP APPLICATION NAVBAR -->
+  <header class="bg-white/95 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-0 z-40 shadow-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        
+        <!-- Logo & Organization Title -->
+        <div class="flex items-center space-x-3.5">
+          <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-emerald-400 p-[1.5px] shadow-md shadow-indigo-600/20">
+            <div class="w-full h-full bg-white dark:bg-slate-950 rounded-[10px] flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+              <i class="fa-solid fa-layer-group text-lg"></i>
+            </div>
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="text-base font-bold text-slate-900 dark:text-white tracking-tight">NovaSphere</span>
+              <span class="text-[10px] font-semibold bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20 px-2 py-0.5 rounded-full uppercase">Enterprise</span>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Node.js &bull; Express.js &bull; MongoDB Atlas</p>
+          </div>
+        </div>
+
+        <!-- Center Tabs Navigation -->
+        <nav class="hidden md:flex items-center space-x-1 bg-slate-100 dark:bg-slate-950/60 p-1.5 rounded-xl border border-slate-200 dark:border-slate-800">
+          <button id="navTabProducts" class="nav-tab active flex items-center space-x-2 px-4 py-2 rounded-lg text-xs font-semibold text-white bg-indigo-600 shadow-sm transition">
+            <i class="fa-solid fa-boxes-stacked"></i>
+            <span>Inventory Catalog</span>
+          </button>
+          <button id="navTabUsers" class="nav-tab flex items-center space-x-2 px-4 py-2 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-800/60 transition">
+            <i class="fa-solid fa-users-gear"></i>
+            <span>User Management</span>
+          </button>
+          <button id="navTabDiagnostics" class="nav-tab flex items-center space-x-2 px-4 py-2 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-800/60 transition">
+            <i class="fa-solid fa-server"></i>
+            <span>System Telemetry</span>
+          </button>
+        </nav>
+
+        <!-- Right System Indicators, Theme Switcher & Actions -->
+        <div class="flex items-center space-x-2.5 sm:space-x-3">
+          
+          <!-- Theme Toggle Button (Light / Dark) -->
+          <button id="themeToggleBtn" title="Toggle Light / Dark mode" class="p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition flex items-center justify-center">
+            <i id="themeToggleIcon" class="fa-solid fa-moon text-sm"></i>
+          </button>
+
+          <!-- Live Atlas Badge -->
+          <div id="dbHealthBadge" class="flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 text-slate-700 dark:text-slate-300">
+            <span id="dbHealthDot" class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span id="dbHealthText">Atlas: Connected</span>
+          </div>
+
+          <!-- Currency Indicator Badge -->
+          <div class="hidden sm:flex items-center space-x-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-700/40 text-emerald-700 dark:text-emerald-300" title="Values in Indian Rupee (INR)">
+            <span>₹ INR</span>
+          </div>
+
+          <!-- Primary Modal Button -->
+          <button id="topActionBtn" class="bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white font-medium text-xs px-3.5 py-2 rounded-lg shadow-md shadow-indigo-600/20 flex items-center space-x-2 transition">
+            <i class="fa-solid fa-plus text-[11px]"></i>
+            <span id="topActionBtnText">Add Product</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN VIEWPORT -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+
+    <!-- ====================================================================
+         TAB 1: PRODUCTS INVENTORY VIEW
+         ==================================================================== -->
+    <div id="viewProducts" class="space-y-6">
+
+      <!-- EXECUTIVE KPI STATS CARDS (INDIAN RUPEES) -->
+      <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        <!-- Total Products Card -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 hover:border-slate-300 dark:hover:border-slate-700 transition shadow-sm">
+          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">
+            <span>Total SKUs</span>
+            <div class="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+              <i class="fa-solid fa-cube text-sm"></i>
+            </div>
+          </div>
+          <div class="mt-3 flex items-baseline space-x-2">
+            <span id="statTotalProducts" class="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">0</span>
+            <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">catalog items</span>
+          </div>
+          <div class="mt-2 text-[11px] text-slate-500 dark:text-slate-400 flex items-center space-x-1">
+            <i class="fa-solid fa-circle-check text-emerald-500 dark:text-emerald-400 mr-0.5"></i>
+            <span>Synced with MongoDB Atlas</span>
+          </div>
+        </div>
+
+        <!-- Total Stock In Units -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 hover:border-slate-300 dark:hover:border-slate-700 transition shadow-sm">
+          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">
+            <span>Inventory Quantity</span>
+            <div class="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+              <i class="fa-solid fa-warehouse text-sm"></i>
+            </div>
+          </div>
+          <div class="mt-3 flex items-baseline space-x-2">
+            <span id="statTotalStock" class="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">0</span>
+            <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">units available</span>
+          </div>
+          <div class="mt-2 text-[11px] text-slate-500 dark:text-slate-400 flex items-center space-x-1">
+            <i class="fa-solid fa-cubes-stacked text-blue-500 dark:text-blue-400 mr-0.5"></i>
+            <span>Distributed across categories</span>
+          </div>
+        </div>
+
+        <!-- Low Stock Alerts -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 hover:border-slate-300 dark:hover:border-slate-700 transition shadow-sm">
+          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">
+            <span>Restock Attention</span>
+            <div class="w-8 h-8 rounded-lg bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+              <i class="fa-solid fa-triangle-exclamation text-sm"></i>
+            </div>
+          </div>
+          <div class="mt-3 flex items-baseline space-x-2">
+            <span id="statLowStock" class="text-3xl font-extrabold text-amber-600 dark:text-amber-400 tracking-tight">0</span>
+            <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">SKUs flagged</span>
+          </div>
+          <div class="mt-2 text-[11px] text-amber-600 dark:text-amber-300/80 flex items-center space-x-1">
+            <span>Requires procurement action</span>
+          </div>
+        </div>
+
+        <!-- Total Inventory Valuation in Indian Rupees -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 hover:border-slate-300 dark:hover:border-slate-700 transition shadow-sm">
+          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">
+            <span>Total Valuation (INR)</span>
+            <div class="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-sm">
+              ₹
+            </div>
+          </div>
+          <div class="mt-3 flex items-baseline space-x-1">
+            <span id="statTotalValue" class="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">₹0.00</span>
+          </div>
+          <div class="mt-2 text-[11px] text-slate-500 dark:text-slate-400 flex items-center space-x-1">
+            <span>Aggregated via MongoDB Pipeline</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- SEARCH, FILTERS & ACTION CONTROLS -->
+      <section class="bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex flex-col md:flex-row gap-4 items-center justify-between shadow-xs">
+        
+        <!-- Search Bar -->
+        <div class="relative w-full md:w-88">
+          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400 text-xs"></i>
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Search by product name, SKU, or tags..."
+            class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl pl-9 pr-9 py-2.5 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-indigo-500 transition"
+          />
+          <button id="clearSearchBtn" class="hidden absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <!-- Filters & Tools -->
+        <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+          <!-- Category Filter -->
+          <select id="categoryFilter" class="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-700 dark:text-slate-300 focus:outline-none focus:border-indigo-500">
+            <option value="">All Categories</option>
+            <option value="Electronics">Electronics</option>
+            <option value="Clothing">Clothing</option>
+            <option value="Home & Kitchen">Home & Kitchen</option>
+            <option value="Books">Books</option>
+            <option value="Health & Beauty">Health & Beauty</option>
+            <option value="Sports">Sports</option>
+            <option value="Toys & Games">Toys & Games</option>
+            <option value="Office Supplies">Office Supplies</option>
+            <option value="Other">Other</option>
+          </select>
+
+          <!-- Status Filter -->
+          <select id="statusFilter" class="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-700 dark:text-slate-300 focus:outline-none focus:border-indigo-500">
+            <option value="">All Stock Statuses</option>
+            <option value="In Stock">In Stock</option>
+            <option value="Low Stock">Low Stock</option>
+            <option value="Out of Stock">Out of Stock</option>
+            <option value="Discontinued">Discontinued</option>
+          </select>
+
+          <!-- Sort Order -->
+          <select id="sortByFilter" class="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-700 dark:text-slate-300 focus:outline-none focus:border-indigo-500">
+            <option value="createdAt-desc">Newest Added</option>
+            <option value="price-desc">Price: High to Low (₹)</option>
+            <option value="price-asc">Price: Low to High (₹)</option>
+            <option value="quantityInStock-desc">Stock: High to Low</option>
+            <option value="quantityInStock-asc">Stock: Low to High</option>
+            <option value="name-asc">Name: A to Z</option>
+          </select>
+
+          <!-- Export CSV -->
+          <button id="exportCsvBtn" title="Export catalog to CSV" class="px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:border-slate-300 dark:hover:border-slate-700 transition flex items-center space-x-1.5">
+            <i class="fa-solid fa-file-csv"></i>
+            <span>Export</span>
+          </button>
+
+          <!-- Refresh -->
+          <button id="refreshProductsBtn" title="Reload from MongoDB" class="p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:border-slate-300 dark:hover:border-slate-700 transition">
+            <i class="fa-solid fa-rotate text-xs"></i>
+          </button>
+        </div>
+      </section>
+
+      <!-- PRODUCTS DATA TABLE -->
+      <section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b border-slate-200 dark:border-slate-800 bg-slate-100/70 dark:bg-slate-950/80 text-[11px] font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
+                <th class="py-3.5 px-6">Product / SKU</th>
+                <th class="py-3.5 px-6">Category</th>
+                <th class="py-3.5 px-6">Unit Price (₹ INR)</th>
+                <th class="py-3.5 px-6">Inventory Level</th>
+                <th class="py-3.5 px-6">Status</th>
+                <th class="py-3.5 px-6 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="productsTableBody" class="divide-y divide-slate-200 dark:divide-slate-800/80 text-xs">
+              <!-- Dynamically populated via app.js -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- PAGINATION BAR -->
+        <div class="px-6 py-3.5 border-t border-slate-200 dark:border-slate-800/80 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 bg-slate-50/50 dark:bg-slate-950/40">
+          <div id="paginationInfo">Loading products...</div>
+          <div class="flex items-center space-x-2">
+            <button id="prevPageBtn" disabled class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+              <i class="fa-solid fa-chevron-left mr-1 text-[10px]"></i> Prev
+            </button>
+            <span id="currentPageIndicator" class="px-2 font-mono text-slate-700 dark:text-slate-200">1 / 1</span>
+            <button id="nextPageBtn" disabled class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+              Next <i class="fa-solid fa-chevron-right ml-1 text-[10px]"></i>
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ====================================================================
+         TAB 2: USER MANAGEMENT VIEW
+         ==================================================================== -->
+    <div id="viewUsers" class="hidden space-y-6">
+      
+      <!-- Users Header Banner -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+            <i class="fa-solid fa-users text-indigo-600 dark:text-indigo-400"></i>
+            <span>Registered User Accounts</span>
+          </h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Manage user profiles stored in MongoDB Atlas collection: <code class="text-indigo-700 dark:text-indigo-300 bg-slate-100 dark:bg-slate-950 px-1.5 py-0.5 rounded font-mono">users</code></p>
+        </div>
+
+        <button id="openRegisterUserModalBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs px-4 py-2 rounded-xl shadow-md transition flex items-center space-x-2">
+          <i class="fa-solid fa-user-plus"></i>
+          <span>Register New User</span>
+        </button>
+      </div>
+
+      <!-- Users Data Table -->
+      <section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b border-slate-200 dark:border-slate-800 bg-slate-100/70 dark:bg-slate-950/80 text-[11px] font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
+                <th class="py-3.5 px-6">User Profile</th>
+                <th class="py-3.5 px-6">Email Address</th>
+                <th class="py-3.5 px-6">Role</th>
+                <th class="py-3.5 px-6">Age</th>
+                <th class="py-3.5 px-6">Registered On</th>
+                <th class="py-3.5 px-6 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="usersTableBody" class="divide-y divide-slate-200 dark:divide-slate-800/80 text-xs">
+              <!-- Dynamically populated via app.js -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <!-- ====================================================================
+         TAB 3: SYSTEM TELEMETRY & HEALTH
+         ==================================================================== -->
+    <div id="viewDiagnostics" class="hidden space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        <!-- MongoDB Atlas Diagnostics Card -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-4 shadow-xs">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
+            <h3 class="font-semibold text-slate-900 dark:text-white flex items-center space-x-2">
+              <i class="fa-solid fa-database text-emerald-500 dark:text-emerald-400"></i>
+              <span>MongoDB Atlas Cluster Telemetry</span>
+            </h3>
+            <span class="text-xs font-semibold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 px-2 py-0.5 rounded-full">ACTIVE</span>
+          </div>
+          <div class="space-y-2.5 text-xs">
+            <div class="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800/60">
+              <span class="text-slate-500 dark:text-slate-400">Database Name</span>
+              <span class="font-mono text-slate-800 dark:text-slate-200 font-semibold">inventory_db</span>
+            </div>
+            <div class="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800/60">
+              <span class="text-slate-500 dark:text-slate-400">Cluster Host</span>
+              <span id="telemetryHost" class="font-mono text-slate-800 dark:text-slate-200 truncate max-w-xs">cluster0.u3kjtit.mongodb.net</span>
+            </div>
+            <div class="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800/60">
+              <span class="text-slate-500 dark:text-slate-400">Connection State</span>
+              <span id="telemetryStatus" class="font-semibold text-emerald-600 dark:text-emerald-400">Connected (ReadyState: 1)</span>
+            </div>
+            <div class="flex justify-between py-1.5">
+              <span class="text-slate-500 dark:text-slate-400">DNS Resolution</span>
+              <span class="font-mono text-slate-800 dark:text-slate-200">Google DNS (8.8.8.8) SRV Active</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Node & Express Runtime Card -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-4 shadow-xs">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
+            <h3 class="font-semibold text-slate-900 dark:text-white flex items-center space-x-2">
+              <i class="fa-brands fa-node-js text-green-600 dark:text-green-400"></i>
+              <span>Node.js / Express Server</span>
+            </h3>
+            <span class="text-xs font-semibold bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20 px-2 py-0.5 rounded-full">PORT 8000</span>
+          </div>
+          <div class="space-y-2.5 text-xs">
+            <div class="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800/60">
+              <span class="text-slate-500 dark:text-slate-400">Node Runtime Version</span>
+              <span class="font-mono text-slate-800 dark:text-slate-200">v22.22.0</span>
+            </div>
+            <div class="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800/60">
+              <span class="text-slate-500 dark:text-slate-400">Environment</span>
+              <span class="font-mono text-slate-800 dark:text-slate-200">development</span>
+            </div>
+            <div class="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800/60">
+              <span class="text-slate-500 dark:text-slate-400">Uptime</span>
+              <span id="telemetryUptime" class="font-mono text-slate-800 dark:text-slate-200">Calculating...</span>
+            </div>
+            <div class="flex justify-between py-1.5">
+              <span class="text-slate-500 dark:text-slate-400">Currency Standard</span>
+              <span class="font-semibold text-emerald-600 dark:text-emerald-400">Indian Rupee (₹ INR)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ====================================================================
+       MODAL: CREATE / EDIT PRODUCT
+       ==================================================================== -->
+  <div id="productModal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-950/60 dark:bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-xl w-full p-6 shadow-2xl relative animate-fadeIn">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
+        <h2 id="modalTitle" class="text-base font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+          <i class="fa-solid fa-box text-indigo-600 dark:text-indigo-400"></i>
+          <span>Add New Product</span>
+        </h2>
+        <button id="closeModalBtn" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-sm">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <form id="productForm" class="mt-4 space-y-4">
+        <input type="hidden" id="productId" />
+
+        <!-- Name & SKU -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Product Title *</label>
+            <input
+              type="text"
+              id="formName"
+              required
+              minlength="2"
+              maxlength="120"
+              placeholder="e.g. Sony WH-1000XM5 Headphones"
+              class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500"
+            />
+            <span class="error-text text-red-500 text-[11px] hidden" id="err-name"></span>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">SKU Code *</label>
+            <input
+              type="text"
+              id="formSku"
+              required
+              placeholder="e.g. ELEC-SNY-001"
+              class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-slate-100 font-mono uppercase focus:outline-none focus:border-indigo-500"
+            />
+            <span class="error-text text-red-500 text-[11px] hidden" id="err-sku"></span>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Description *</label>
+          <textarea
+            id="formDescription"
+            rows="2"
+            required
+            maxlength="1000"
+            placeholder="Detailed product specifications..."
+            class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500"
+          ></textarea>
+          <span class="error-text text-red-500 text-[11px] hidden" id="err-description"></span>
+        </div>
+
+        <!-- Category & Price in Indian Rupees -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Category *</label>
+            <select
+              id="formCategory"
+              required
+              class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500"
+            >
+              <option value="" disabled selected>Select category</option>
+              <option value="Electronics">Electronics</option>
+              <option value="Clothing">Clothing</option>
+              <option value="Home & Kitchen">Home & Kitchen</option>
+              <option value="Books">Books</option>
+              <option value="Health & Beauty">Health & Beauty</option>
+              <option value="Sports">Sports</option>
+              <option value="Toys & Games">Toys & Games</option>
+              <option value="Office Supplies">Office Supplies</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Selling Price (₹ INR) *</label>
+            <div class="relative">
+              <span class="absolute left-3 top-2 text-xs text-slate-400 font-semibold">₹</span>
+              <input
+                type="number"
+                id="formPrice"
+                step="0.01"
+                min="0"
+                required
+                placeholder="0.00"
+                class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl pl-7 pr-3 py-2 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500"
+              />
+            </div>
+            <span class="error-text text-red-500 text-[11px] hidden" id="err-price"></span>
+          </div>
+        </div>
+
+        <!-- Cost Price & Quantity -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Cost Price (₹ INR)</label>
+            <div class="relative">
+              <span class="absolute left-3 top-2 text-xs text-slate-400 font-semibold">₹</span>
+              <input
+                type="number"
+                id="formCostPrice"
+                step="0.01"
+                min="0"
+                placeholder="0.00"
+                class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl pl-7 pr-3 py-2 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Stock Quantity *</label>
+            <input
+              type="number"
+              id="formQuantity"
+              step="1"
+              min="0"
+              required
+              placeholder="0"
+              class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Low Stock Warning</label>
+            <input
+              type="number"
+              id="formLowStockThreshold"
+              step="1"
+              min="0"
+              value="10"
+              class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500"
+            />
+          </div>
+        </div>
+
+        <!-- Tags -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Tags (comma-separated)</label>
+          <input
+            type="text"
+            id="formTags"
+            placeholder="electronics, wireless, anc, premium"
+            class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500"
+          />
+        </div>
+
+        <!-- Error Alert -->
+        <div id="formAlertBox" class="hidden text-xs p-3 rounded-xl bg-red-50 dark:bg-red-950/60 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-200"></div>
+
+        <!-- Form Actions -->
+        <div class="pt-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end space-x-3">
+          <button
+            type="button"
+            id="cancelModalBtn"
+            class="px-4 py-2 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            id="saveProductBtn"
+            class="px-5 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition flex items-center space-x-2"
+          >
+            <span id="saveBtnText">Save Product</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL: REGISTER NEW USER
+       ==================================================================== -->
+  <div id="userModal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-950/60 dark:bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl relative animate-fadeIn">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
+        <h2 class="text-base font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+          <i class="fa-solid fa-user-plus text-indigo-600 dark:text-indigo-400"></i>
+          <span>Register User Account</span>
+        </h2>
+        <button id="closeUserModalBtn" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-sm">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <form id="userRegisterForm" class="mt-4 space-y-3.5">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Full Name *</label>
+          <input
+            type="text"
+            id="formUserName"
+            required
+            placeholder="e.g. Aarav Sharma"
+            class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500"
+          />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Email Address *</label>
+          <input
+            type="email"
+            id="formUserEmail"
+            required
+            placeholder="e.g. aarav.sharma@example.com"
+            class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500"
+          />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Password * (Min 6 chars)</label>
+          <input
+            type="password"
+            id="formUserPassword"
+            required
+            minlength="6"
+            placeholder="••••••••"
+            class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500"
+          />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Role</label>
+            <select
+              id="formUserRole"
+              class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500"
+            >
+              <option value="user">User</option>
+              <option value="admin">Admin</option>
+              <option value="moderator">Moderator</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Age</label>
+            <input
+              type="number"
+              id="formUserAge"
+              min="0"
+              max="150"
+              placeholder="22"
+              class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500"
+            />
+          </div>
+        </div>
+
+        <div id="userFormAlertBox" class="hidden text-xs p-3 rounded-xl bg-red-50 dark:bg-red-950/60 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-200"></div>
+
+        <div class="pt-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end space-x-3">
+          <button
+            type="button"
+            id="cancelUserModalBtn"
+            class="px-4 py-2 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            id="submitUserBtn"
+            class="px-5 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition flex items-center space-x-2"
+          >
+            <span>Register in MongoDB</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL: DELETE CONFIRMATION
+       ==================================================================== -->
+  <div id="deleteModal" class="hidden fixed inset-0 z-50 bg-slate-950/60 dark:bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-sm w-full p-6 shadow-2xl relative animate-fadeIn text-center space-y-4">
+      <div class="w-12 h-12 rounded-full bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 mx-auto flex items-center justify-center text-lg">
+        <i class="fa-solid fa-trash"></i>
+      </div>
+      <div>
+        <h3 class="text-base font-bold text-slate-900 dark:text-white">Confirm Removal</h3>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+          Are you sure you want to delete <strong id="deleteTargetTitle" class="text-slate-800 dark:text-slate-200"></strong> from MongoDB?
+        </p>
+      </div>
+      <div class="flex items-center justify-center space-x-3 pt-2">
+        <button id="cancelDeleteBtn" class="px-4 py-2 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+          Cancel
+        </button>
+        <button id="confirmDeleteBtn" class="px-5 py-2 rounded-xl text-xs font-semibold bg-red-600 hover:bg-red-500 text-white transition">
+          Confirm Delete
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST CONTAINER -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 space-y-2"></div>
+
+  <!-- FOOTER -->
+  <footer class="mt-auto border-t border-slate-200 dark:border-slate-800/80 bg-white dark:bg-slate-950 py-4 text-center text-xs text-slate-500">
+    <p>NovaSphere Full-Stack Suite &bull; Standard Node.js &bull; Express.js &bull; MongoDB Atlas (NoSQL)</p>
+  </footer>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
